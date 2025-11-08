@@ -2,6 +2,7 @@ const STORAGE_KEY = "gestionCommandesState_v1";
 const CLIENT_SESSION_KEY = "clickCollectClient_v1";
 
 const elements = {
+  siteHeader: document.querySelector(".site-header"),
   productsList: document.querySelector("#productsList"),
   productCardTemplate: document.querySelector("#productCardTemplate"),
   cartToggle: document.querySelector("#cartToggle"),
@@ -119,14 +120,14 @@ function updateSessionUI() {
     elements.accountLabel.textContent = `Bonjour, ${clientSession.name.split(" ")[0] ?? clientSession.name
       }`;
     elements.logoutBtn?.classList.remove("hidden");
-    elements.accountToggle?.classList.add("active");
+    elements.accountToggle?.classList.add("logged-in");
     if (elements.accountSubtitle) {
       elements.accountSubtitle.textContent = `Connecté comme ${clientSession.name} (${clientSession.email})`;
     }
   } else {
     elements.accountLabel.textContent = "Mon compte";
     elements.logoutBtn?.classList.add("hidden");
-    elements.accountToggle?.classList.remove("active");
+    elements.accountToggle?.classList.remove("logged-in", "active");
     if (elements.accountSubtitle) {
       elements.accountSubtitle.textContent = "Connectez-vous pour suivre vos commandes.";
     }
@@ -270,6 +271,7 @@ function toggleCart(forceOpen = null) {
   const shouldOpen = forceOpen ?? !elements.cartPanel.classList.contains("open");
   elements.cartPanel.classList.toggle("open", shouldOpen);
   elements.cartOverlay.classList.toggle("visible", shouldOpen);
+  elements.cartToggle?.classList.toggle("active", shouldOpen);
 }
 
 function openModal(modal) {
@@ -457,6 +459,7 @@ function renderAccountOrders() {
 
 function openAccountModal() {
   if (!clientSession) {
+    elements.accountToggle?.classList.add("active");
     openModal(elements.authModal);
     return;
   }
@@ -464,6 +467,7 @@ function openAccountModal() {
   elements.accountEmpty.classList.toggle("hidden", !!getClientOrders().length);
   elements.accountOrders.classList.toggle("hidden", !getClientOrders().length);
   elements.accountSubtitle.textContent = `Connecté comme ${clientSession.name} (${clientSession.email})`;
+  elements.accountToggle?.classList.add("active");
   openModal(elements.accountModal);
 }
 
@@ -474,6 +478,9 @@ function closeAllModals() {
     elements.confirmationModal,
     elements.accountModal,
   ].forEach(closeModal);
+  elements.accountToggle?.classList.remove("active");
+  elements.cartToggle?.classList.remove("active");
+  pendingCheckout = false;
 }
 
 function handleAuthSubmit(event) {
@@ -546,30 +553,65 @@ function attachEventListeners() {
   elements.confirmationOk?.addEventListener("click", () => closeModal(elements.confirmationModal));
 
   elements.accountToggle?.addEventListener("click", openAccountModal);
-  elements.accountClose?.addEventListener("click", () => closeModal(elements.accountModal));
+  elements.accountClose?.addEventListener("click", () => {
+    closeModal(elements.accountModal);
+    elements.accountToggle?.classList.remove("active");
+  });
   elements.logoutBtn?.addEventListener("click", () => {
     clearClientSession();
     closeModal(elements.accountModal);
+    elements.accountToggle?.classList.remove("active");
   });
 
   elements.authForm?.addEventListener("submit", handleAuthSubmit);
   elements.authClose?.addEventListener("click", () => {
     closeModal(elements.authModal);
+    elements.accountToggle?.classList.remove("active");
     pendingCheckout = false;
   });
   elements.authCancel?.addEventListener("click", () => {
     closeModal(elements.authModal);
+    elements.accountToggle?.classList.remove("active");
     pendingCheckout = false;
   });
 
   elements.homeNav?.addEventListener("click", () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
+    elements.homeNav?.classList.add("active");
+    setTimeout(() => elements.homeNav?.classList.remove("active"), 800);
   });
   elements.heroShopBtn?.addEventListener("click", () => {
     const top = elements.productsList?.offsetTop ?? 0;
     window.scrollTo({ top: top - 40, behavior: "smooth" });
+    elements.homeNav?.classList.add("active");
+    setTimeout(() => elements.homeNav?.classList.remove("active"), 800);
   });
-  elements.heroAccountBtn?.addEventListener("click", openAccountModal);
+  elements.heroAccountBtn?.addEventListener("click", () => {
+    openAccountModal();
+  });
+
+  [elements.authModal, elements.checkoutModal, elements.confirmationModal, elements.accountModal].forEach(
+    (overlay) => {
+      overlay?.addEventListener("click", (event) => {
+        if (event.target === overlay) {
+          overlay.classList.remove("visible");
+          if (overlay === elements.checkoutModal) {
+            pendingCheckout = false;
+          }
+          if (overlay === elements.accountModal || overlay === elements.authModal) {
+            elements.accountToggle?.classList.remove("active");
+          }
+        }
+      });
+    },
+  );
+
+  const handleScroll = () => {
+    if (!elements.siteHeader) return;
+    elements.siteHeader.classList.toggle("scrolled", window.scrollY > 12);
+  };
+  window.addEventListener("scroll", handleScroll, { passive: true });
+  handleScroll();
 
   window.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
