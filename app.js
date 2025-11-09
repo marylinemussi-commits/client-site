@@ -54,7 +54,7 @@ const DEFAULT_PRODUCTS = [
     name: "boite bombom",
     description: "Assortiment premium de douceurs artisanales.",
     price: 5,
-    stock: 5,
+    stock: 4,
     sku: "BOITE-BOMBOM-002",
   },
   {
@@ -70,7 +70,7 @@ const DEFAULT_PRODUCTS = [
     name: "livre la femme de menage 4",
     description: "Roman à suspense best-seller.",
     price: 22,
-    stock: 18,
+    stock: 17,
     sku: "LIVRE-MENAGE4-004",
   },
   {
@@ -78,7 +78,7 @@ const DEFAULT_PRODUCTS = [
     name: "livre la vlase des ame",
     description: "Saga dramatique inspirée de faits réels.",
     price: 22.9,
-    stock: 5,
+    stock: 55,
     sku: "LIVRE-VLASE-005",
   },
   {
@@ -88,6 +88,14 @@ const DEFAULT_PRODUCTS = [
     price: 22.9,
     stock: 51,
     sku: "LIVRE-MUSSO-006",
+  },
+  {
+    id: "prd-orange-lot",
+    name: "orange lot",
+    description: "Lot de fruits vitaminés sélectionnés chaque matin.",
+    price: 8,
+    stock: 50,
+    sku: "ORANGE-LOT-007",
   },
   {
     id: "prd-tableau",
@@ -102,7 +110,7 @@ const DEFAULT_PRODUCTS = [
     name: "veste ski enfant",
     description: "Veste technique enfant, isolation thermique renforcée.",
     price: 20,
-    stock: 52,
+    stock: 50,
     sku: "VESTE-SKI-008",
   },
 ];
@@ -286,6 +294,10 @@ function renderProducts() {
       Ajouter
       <span class="material-icons-outlined">add_shopping_cart</span>
     `;
+    addButton.addEventListener("click", (event) => {
+      event.preventDefault();
+      addToCart(product.id);
+    });
 
     footer.append(skuLabel, addButton);
 

@@ -332,6 +332,8 @@ body {
   justify-content: space-between;
   align-items: center;
   gap: 12px;
+  position: relative;
+  z-index: 2;
 }
 
 .btn {
